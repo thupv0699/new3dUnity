@@ -6,6 +6,7 @@ TagManager:
   tags:
   - AttackPos
   - Car
+  - Bullet
   layers:
   - Default
   - TransparentFX
