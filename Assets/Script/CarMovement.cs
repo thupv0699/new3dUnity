@@ -7,7 +7,7 @@ public class CarMovement : MonoBehaviour
 {
     // Start is called before the first frame update
 
-    [SerializeField] Transform attackPos;
+
 
     [SerializeField] Transform target;
     [SerializeField] Transform shootPos;
@@ -18,27 +18,51 @@ public class CarMovement : MonoBehaviour
     [SerializeField] Transform machineGun;
     [SerializeField] float rotateSpeed;
 
+    [SerializeField] GameObject[] attackPosArray;
+
+    int index;
+
+    GameObject attackPos2;
+
+    Transform attackPos;
+
+
     NavMeshAgent agent;
+
+
 
     bool attacked = false;// biến check xem machine gun đã bắn chưa
 
 
     private void Start()
     {
-        //tìm vị trí của attack pos
-        attackPos = GameObject.FindGameObjectWithTag("AttackPos").transform;
+
+
+        GetRandomAttackPos();//lấy random một attack pos trên array
 
         agent = GetComponent<NavMeshAgent>();
 
         target = GameObject.FindGameObjectWithTag("Player").transform;
+    }
 
+    private void GetRandomAttackPos()
+    {
+        attackPosArray = GameObject.FindGameObjectsWithTag("AttackPos");
+
+        index = Random.Range(0, attackPosArray.Length);
+
+        attackPos2 = attackPosArray[index];
+
+        attackPos = attackPos2.transform;
     }
 
     void Update()
     {
+
+        Debug.Log(attackPos.name);
+
         agent.SetDestination(attackPos.position);//đặt điểm đến cho agent
 
-        
     }
 
     private void OnTriggerStay(Collider other)
@@ -72,17 +96,23 @@ public class CarMovement : MonoBehaviour
     {
         Vector3 targetDirection = target.position - machineGun.position; //hướng của target
 
+
+        float getAngel = Vector3.Angle(targetDirection, machineGun.forward);
+        
         float speed = rotateSpeed * Time.deltaTime;// tính tốc độ xoay
 
         Vector3 newDirection = Vector3.RotateTowards(machineGun.forward, targetDirection, speed, 0f); //chỉ ra hướng của mục tiêu
 
         Debug.DrawRay(machineGun.position, newDirection, Color.red); //vẽ một đường ray cast chỉ đến mục tiêu
 
-        //check true false, nếu chỉ đến turret thì trả về true ???
-
         machineGun.rotation = Quaternion.LookRotation(newDirection);//thực hiện quay
 
-        return true;//trả về true nếu đã quay đến hướng turret
+
+        if (getAngel != 0)
+        {
+            return false;
+        }
+        return true;
     }
 
     IEnumerator Wait2Shoot()
@@ -91,11 +121,11 @@ public class CarMovement : MonoBehaviour
 
         Shoot();
 
-        yield return new WaitForSeconds(4f); //đợi 1 s rồi thực hiện tìm mục tiêu khác để di chuyển đến
+        yield return new WaitForSeconds(1f); //đợi 1 s rồi thực hiện tìm mục tiêu khác để di chuyển đến
 
         attacked = false;
 
-        agent.SetDestination(attackPos.position);//đặt điểm đến cho agent
+        GetRandomAttackPos();
 
     }
 
